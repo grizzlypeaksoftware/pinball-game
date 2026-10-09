@@ -187,8 +187,8 @@ export class Renderer {
     ctx.lineWidth = 36;
     ctx.lineCap = 'round';
     ctx.beginPath();
-    ctx.moveTo(444, 520);
-    ctx.lineTo(450, 380);
+    ctx.moveTo(440, 566);
+    ctx.lineTo(450, 320);
     ctx.stroke();
     ctx.restore();
 

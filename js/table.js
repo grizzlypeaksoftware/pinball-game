@@ -173,7 +173,9 @@ export function createTable() {
   // channel it only paid out if the ball completed the entire loop: two
   // thirds of successful orbit shots registered nothing at all, which made
   // a hard shot feel broken rather than hard.
-  const spinner = { x: 443, y: 476, r: 32, a: Math.PI / 2, angle: 0, spinVel: 0, cooldown: 0, spins: 0 };
+  // `a` orients the plate across the lane; the lane here is vertical, so the
+  // plate lies horizontal and the ball passes through it.
+  const spinner = { x: 443, y: 476, r: 32, a: 0, angle: 0, spinVel: 0, cooldown: 0, spins: 0 };
 
   // ---- Drop target bank: C-A-D-E-T ----------------------------------
   // One straight bank in the upper left, faces pointing down-right.
