@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Space Cadet Pinball</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="description" content="A retro 90s-style space pinball table that plays in your browser. Touch controls, full physics, no install.">
+<meta name="theme-color" content="#03040c">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Pinball">
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="icon" href="./assets/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="./assets/icon-180.png">
+<!-- Bootstrap and the webfonts are self-hosted: no CDN to go down, and the
+     game still works with no network once it is on your home screen. -->
+<link rel="preload" href="./assets/fonts/press-start-2p.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="./vendor/bootstrap.min.css">
+<link rel="stylesheet" href="./css/fonts.css">
+<link rel="stylesheet" href="./css/style.css">
+</head>
+<body>
+
+<!-- ===================== Score bar ===================== -->
+<header id="hud" class="container-fluid px-2 py-1">
+  <div class="row g-1 align-items-center text-center">
+    <div class="col-auto text-start">
+      <div class="hud-label">Ball</div>
+      <div class="d-flex align-items-baseline gap-1">
+        <span id="ball" class="hud-ball">–</span>
+        <span id="balls-left" class="hud-dots"></span>
+      </div>
+    </div>
+    <div class="col">
+      <div class="hud-label">Score</div>
+      <div id="score" class="hud-score">0</div>
+    </div>
+    <div class="col-auto text-end">
+      <div class="hud-label">Bonus</div>
+      <div id="mult" class="hud-mult">1x</div>
+    </div>
+    <div class="col-auto">
+      <button id="btn-pause" data-ui class="btn btn-sm btn-outline-info hud-btn" aria-label="Pause">❚❚</button>
+    </div>
+  </div>
+  <div class="row g-1 align-items-center mt-1">
+    <div class="col-auto"><span class="hud-label">Rank</span> <span id="rank" class="hud-rank">CADET</span></div>
+    <div class="col text-end"><span class="hud-label">High</span> <span id="high" class="hud-high">0</span></div>
+  </div>
+  <div class="mission-row d-flex align-items-center gap-2 mt-1">
+    <span id="mission" class="hud-mission flex-shrink-1">JET BUMPER DRILL</span>
+    <div class="progress flex-grow-1 mission-progress" role="progressbar" aria-label="Mission progress">
+      <div id="mission-bar" class="progress-bar" style="width:0%"></div>
+    </div>
+  </div>
+</header>
+
+<!-- ===================== Playfield ===================== -->
+<main id="stage">
+  <canvas id="table"></canvas>
+
+  <div id="ball-save" class="badge rounded-pill ball-save d-none">BALL SAVE</div>
+  <div id="msg" class="msg-stack"></div>
+
+  <div class="stage-controls">
+    <button id="btn-launch" data-ui class="btn btn-warning btn-launch d-none">
+      HOLD TO<br>LAUNCH
+    </button>
+    <button id="btn-nudge" data-ui class="btn btn-outline-light btn-nudge d-none">NUDGE</button>
+  </div>
+
+  <div class="stage-toggles">
+    <button id="btn-sound" data-ui class="btn btn-sm btn-dark toggle-btn" aria-label="Mute">🔊</button>
+    <button id="btn-music" data-ui class="btn btn-sm btn-dark toggle-btn" aria-label="Toggle music">♪</button>
+    <button id="btn-tilt" data-ui class="btn btn-sm btn-dark toggle-btn" aria-label="Shake to nudge">📳</button>
+  </div>
+
+  <!-- ---------- Title ---------- -->
+  <div id="overlay-title" class="overlay d-none">
+    <div class="panel text-center">
+      <h1 class="title-sm">3D</h1>
+      <h1 class="title-lg">SPACE<br>CADET</h1>
+      <p class="title-tag mb-4">P I N B A L L</p>
+      <button id="btn-start" class="btn btn-warning btn-lg px-5 fw-bold">PLAY</button>
+      <div class="mt-3">
+        <button id="btn-help" class="btn btn-link btn-sm text-info">How to play</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ---------- Help ---------- -->
+  <div id="overlay-help" class="overlay d-none">
+    <div class="panel panel-scroll">
+      <h2 class="panel-h">HOW TO PLAY</h2>
+      <ul class="small-list">
+        <li><b>Flippers</b> — tap the left or right half of the table. Both at once works.</li>
+        <li><b>Launch</b> — hold <span class="kbd">LAUNCH</span> to charge the plunger, release to fire.</li>
+        <li><b>Nudge</b> — tap <span class="kbd">NUDGE</span> to shove the table. Three shoves and you tilt.</li>
+        <li><b>Keyboard</b> — <span class="kbd">←</span> <span class="kbd">→</span> flippers,
+          <span class="kbd">space</span> plunger, <span class="kbd">shift</span> nudge, <span class="kbd">P</span> pause.</li>
+      </ul>
+
+      <h2 class="panel-h mt-3">SHOTS</h2>
+      <ul class="small-list">
+        <li><span class="sw sw-cyan"></span><b>Jet bumpers</b> — fast points, and they keep the ball alive.</li>
+        <li><span class="sw sw-amber"></span><b>C-A-D-E-T targets</b> — clear all five to light the kickback.</li>
+        <li><span class="sw sw-green"></span><b>F-U-E-L lanes</b> — in the dome. Complete them to raise the bonus multiplier (up to 5x).</li>
+        <li><span class="sw sw-violet"></span><b>Hyperspace</b> — 50,000, then it spits the ball straight into the jet bumpers.</li>
+        <li><span class="sw sw-orange"></span><b>Black hole</b> — 35,000 and a kick back into play.</li>
+        <li><span class="sw sw-amber"></span><b>Orbit spinner</b> — sits at the top of the right orbit. Loop the ball all the way round the dome to rip it.</li>
+      </ul>
+
+      <h2 class="panel-h mt-3">RANKS</h2>
+      <p id="rank-list" class="rank-list"></p>
+      <p class="small-note">Complete the current mission to earn your next promotion:</p>
+      <ol id="mission-list" class="small-list"></ol>
+      <div class="text-center mt-3">
+        <button id="btn-help-close" class="btn btn-outline-warning px-4">BACK</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ---------- Game over ---------- -->
+  <div id="overlay-over" class="overlay d-none">
+    <div class="panel text-center">
+      <h2 class="panel-h text-danger">GAME OVER</h2>
+      <div class="final-score" id="final-score">0</div>
+      <p class="mb-1">Final rank: <b id="final-rank" class="text-info">CADET</b></p>
+      <p class="mb-4">High score: <b id="final-high" class="text-warning">0</b></p>
+      <button id="btn-again" class="btn btn-warning btn-lg px-5 fw-bold">PLAY AGAIN</button>
+    </div>
+  </div>
+
+  <!-- ---------- Pause ---------- -->
+  <div id="overlay-pause" class="overlay d-none">
+    <div class="panel text-center">
+      <h2 class="panel-h">PAUSED</h2>
+      <button id="btn-resume" class="btn btn-warning px-5 fw-bold">RESUME</button>
+      <div class="mt-3">
+        <button id="btn-quit" class="btn btn-outline-light btn-sm px-4">End game</button>
+      </div>
+    </div>
+  </div>
+</main>
+
+<div id="rotate-hint">
+  <div class="text-center px-4">
+    <div class="rotate-icon">⟳</div>
+    <p class="mb-0">Turn your phone upright to play</p>
+  </div>
+</div>
+
+<div class="scanlines" aria-hidden="true"></div>
+
+<script type="module" src="./js/main.js"></script>
+<noscript>
+  <p style="color:#fff;text-align:center;padding:2rem">This game needs JavaScript enabled.</p>
+</noscript>
+</body>
+</html>

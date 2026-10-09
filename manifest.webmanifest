@@ -1,0 +1,18 @@
+{
+  "name": "Space Cadet Pinball",
+  "short_name": "Pinball",
+  "description": "A retro 90s-style space pinball table with full physics and touch controls.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "fullscreen",
+  "orientation": "portrait",
+  "background_color": "#03040c",
+  "theme_color": "#03040c",
+  "icons": [
+    { "src": "./assets/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "./assets/icon-180.png", "sizes": "180x180", "type": "image/png" },
+    { "src": "./assets/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "./assets/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "./assets/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
