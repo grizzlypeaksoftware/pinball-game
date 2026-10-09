@@ -418,6 +418,7 @@ export class Game {
         this.ejectFromSlings(b);
         this.collideBall(b);
         this.checkHoleEntry(b);
+        this.checkSpinner(b);
         clampSpeed(b);
       }
     }
@@ -653,25 +654,32 @@ export class Game {
     }
   }
 
+  /** Per-frame: just the cooldown and the spinning animation. */
   updateSpinner(dt) {
     const sp = this.table.spinner;
     sp.cooldown = Math.max(0, sp.cooldown - dt);
     sp.spinVel *= Math.max(0, 1 - dt * 1.6);
     sp.angle += sp.spinVel * dt;
+  }
 
-    for (const b of this.balls) {
-      if (b.captured) continue;
-      if (Math.hypot(b.x - sp.x, b.y - sp.y) > sp.r) continue;
-      if (sp.cooldown > 0) continue;
-      sp.cooldown = 0.32;
-      // A real spinner racks up a count on every pass, scaled by how hard
-      // the ball went through it.
-      const spins = 2 + Math.floor(speedOf(b) / 300);
-      sp.spins += spins;
-      sp.spinVel = Math.max(sp.spinVel, 9 + speedOf(b) / 90);
-      for (let i = 0; i < spins; i++) this.award('spin', SCORES.spin, sp.x, sp.y, { silent: true });
-      sfx.spinner();
-    }
+  /**
+   * Per substep, for the same reason as the holes: a ball crossing the
+   * spinner at 2000 units/s covers 33 units between frames and would hop
+   * straight over the sensor. Checked once a frame, only a third of the
+   * balls that went up the orbit actually registered.
+   */
+  checkSpinner(b) {
+    const sp = this.table.spinner;
+    if (sp.cooldown > 0) return;
+    if (Math.hypot(b.x - sp.x, b.y - sp.y) > sp.r) return;
+    sp.cooldown = 0.32;
+    // A real spinner racks up a count on every pass, scaled by how hard the
+    // ball went through it.
+    const spins = 2 + Math.floor(speedOf(b) / 300);
+    sp.spins += spins;
+    sp.spinVel = Math.max(sp.spinVel, 9 + speedOf(b) / 90);
+    for (let i = 0; i < spins; i++) this.award('spin', SCORES.spin, sp.x, sp.y, { silent: true });
+    sfx.spinner();
   }
 
   checkDrains(dt) {

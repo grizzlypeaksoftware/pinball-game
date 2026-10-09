@@ -68,7 +68,10 @@ export function createTable() {
   // The right-hand guide sits across the mouth of the orbit, so it is a
   // one-way: a ball driven up and to the right passes into the orbit lane,
   // while anything coming back down is caught and fed to the inlane.
-  segments.push(wall(LANE_X, 560, 392, 745, { kind: 'guide', r: 6, oneWay: [0.5, -0.866] }));
+  // Ends well short of the slingshot. At 392,745 the gap between this guide
+  // and the right slingshot's top vertex was exactly 22 units -- one ball
+  // diameter -- so the orbit could only be entered by a perfect shot.
+  segments.push(wall(LANE_X, 560, 404, 715, { kind: 'guide', r: 6, oneWay: [0.5, -0.866] }));
 
   // No gate across the chute mouth on purpose: a one-way flap there is a
   // near-horizontal ledge a weak launch can come to rest on, and the ball
@@ -98,8 +101,13 @@ export function createTable() {
     // The inner vertex is kept well clear of the raised flipper tip. At the
     // original 214,832 the two closed to a 0.1-unit gap, so a flipped ball
     // was crushed in the wedge and could end up inside the triangle.
+    // The inner vertex is the gate for the orbit shot: a ball from the left
+    // flipper passes this height at x~278-300, so at 196 (mirrored to 300)
+    // anything flatter than 58 degrees clipped it and only a ~2.5 degree
+    // window reached the right orbit. Pulled outboard, which also widens the
+    // centre gap so more balls land on a flipper instead of draining.
     const a = { x: f(138), y: 744 };
-    const b = { x: f(196), y: 812 };
+    const b = { x: f(180), y: 812 };
     const c = { x: f(142), y: 818 };
     const face = wall(a.x, a.y, b.x, b.y, { kind: 'sling', r: 6, rest: 0.55, kick: 540 });
     segments.push(face);
@@ -139,12 +147,10 @@ export function createTable() {
   circles.push(...bumpers);
 
   // ---- Standing posts ------------------------------------------------
-  for (const p of [
-    { x: 190, y: 700, r: 9 },
-    { x: mx(190), y: 700, r: 9 },
-  ]) {
-    circles.push({ ...p, rest: 0.78, kind: 'post' });
-  }
+  // No mid-field posts. A pair at y=700 sat directly in the flipper shot
+  // lanes -- the right one blocked the whole 67-72 degree band, which is a
+  // third of the window for the right orbit. Decorative; the orbit is not.
+
 
   // ---- Orbit channel -------------------------------------------------
   // An inner guide arc turns the dome into a 56-wide channel. Without it a
@@ -163,8 +169,11 @@ export function createTable() {
   // orbit. Down in the orbit lane it saw almost no traffic: a flipper shot
   // cannot thread that lane (a parabola only flattens as it climbs), so the
   // only balls passing it were rare precise loops.
-  const spinnerPos = polar(deg(36), 224);
-  const spinner = { x: spinnerPos.x, y: spinnerPos.y, r: 30, a: deg(36), angle: 0, spinVel: 0, cooldown: 0, spins: 0 };
+  // Low in the orbit lane, so simply making the shot scores. Up in the dome
+  // channel it only paid out if the ball completed the entire loop: two
+  // thirds of successful orbit shots registered nothing at all, which made
+  // a hard shot feel broken rather than hard.
+  const spinner = { x: 443, y: 476, r: 32, a: Math.PI / 2, angle: 0, spinVel: 0, cooldown: 0, spins: 0 };
 
   // ---- Drop target bank: C-A-D-E-T ----------------------------------
   // One straight bank in the upper left, faces pointing down-right.

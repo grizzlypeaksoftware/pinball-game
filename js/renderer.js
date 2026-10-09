@@ -333,7 +333,7 @@ export class Renderer {
     }
 
     ctx.save();
-    ctx.translate(444, 450);
+    ctx.translate(446, 392);
     ctx.fillStyle = 'rgba(255,194,58,0.55)';
     ctx.font = `8px ${PIXEL}`;
     ctx.fillText('ORBIT', 0, 0);
