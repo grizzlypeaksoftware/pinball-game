@@ -195,6 +195,7 @@ const hud = {
   high: $('high'),
   msg: $('msg'),
   save: $('ball-save'),
+  lock: $('lock-badge'),
 };
 let lastHudScore = -1;
 let lastMsgKey = '';
@@ -215,6 +216,10 @@ function drawHud() {
   hud.bar.style.width = Math.round((game.missionProgress / m.goal) * 100) + '%';
 
   hud.save.classList.toggle('d-none', !(game.ballSave > 0 && game.state === 'play'));
+
+  const showLock = game.locks > 0 && game.state !== 'attract' && game.state !== 'gameOver';
+  hud.lock.classList.toggle('d-none', !showLock);
+  if (showLock) hud.lock.textContent = `LOCK ${game.locks}/3`;
 
   // Rebuild the message stack only when the list actually changes. Rewriting
   // innerHTML every frame restarts the CSS entry animation on every frame,

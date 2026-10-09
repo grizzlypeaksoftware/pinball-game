@@ -29,7 +29,7 @@ You get three balls, with a ten-second ball save at the start of each one.
 | **C‑A‑D‑E‑T targets** | Drop all five to light the **kickback**, which saves one ball from the left outlane. |
 | **F‑U‑E‑L lanes** | Four rollovers spaced around the orbit channel. Loop the ball right round the dome to light all four and raise the bonus multiplier, up to 5×. |
 | **Hyperspace** | 50,000, then the ball is spat out over the jet bumpers. |
-| **Black hole** | 35,000 and a kick back into play. It sits under the arch — a straight shot up the middle-left. |
+| **Black hole** | 35,000, and it **locks a ball**. Lock three and the saucer kicks out into **multiball**. It sits under the arch — a straight shot up the middle-left. |
 | **Orbit spinner** | At the top of the right orbit. Every loop round the dome rips it. |
 | **Slingshots / posts** | Small points and a lot of chaos. |
 
@@ -43,8 +43,12 @@ Each mission completed earns a promotion:
 > CADET → ENSIGN → LIEUTENANT → CAPTAIN → COMMANDER → ADMIRAL → FLEET ADMIRAL
 
 The missions cycle through the jet bumpers, the target bank, the fuel lanes,
-hyperspace, the black hole, the spinner, and finally **Multiball Madness**,
-which puts a second ball into play. Reaching Commander awards an extra ball.
+hyperspace, the black hole, the spinner, and finally **Multiball Madness**.
+Reaching Commander awards an extra ball.
+
+Multiball does not depend on that ladder, though — shoot the black hole
+three times in a game and the third kick-out gives you three balls at once.
+Working through all six missions first would make it nearly unreachable.
 End-of-ball bonus is everything you hit that ball, times your multiplier.
 
 ## Deploying to GitHub Pages

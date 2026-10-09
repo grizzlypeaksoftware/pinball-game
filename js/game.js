@@ -47,6 +47,8 @@ const SCORES = {
 };
 
 const BALLS_PER_GAME = 3;
+/** Black-hole locks needed to start multiball without the mission ladder. */
+const LOCKS_FOR_MULTIBALL = 3;
 const BALL_SAVE_TIME = 10;
 const FLIPPER_UP_SPEED = 33;
 const FLIPPER_DOWN_SPEED = 19;
@@ -76,6 +78,7 @@ export class Game {
     this.ballSave = 0;
     this.kickbackLit = false;
     this.extraBallAwarded = false;
+    this.locks = 0;
 
     this.tiltMeter = 0;
     this.tilted = false;
@@ -120,6 +123,7 @@ export class Game {
     this.missionIndex = 0;
     this.multiplier = 1;
     this.extraBallAwarded = false;
+    this.locks = 0;
     this.table.resetTargets();
     this.table.resetLanes();
     this.startMission(0);
@@ -233,11 +237,13 @@ export class Game {
     this.message('NEXT: ' + nm.hint, 3.2);
   }
 
-  startMultiball() {
+  startMultiball(count = 1) {
     if (this.state === 'attract' || this.state === 'gameOver') return;
-    // Drop a second ball in from the top of the dome.
-    const extra = makeBall(DOME.x - 120, DOME.y - 150, 180, 240);
-    this.balls.push(extra);
+    // Drop the extra balls in from the top of the dome, spread apart so they
+    // do not spawn on top of each other.
+    for (let i = 0; i < count; i++) {
+      this.balls.push(makeBall(DOME.x - 120 + i * 70, DOME.y - 150 - i * 40, 180 - i * 90, 240));
+    }
     this.ballSave = Math.max(this.ballSave, 6);
     this.message('MULTIBALL!', 3);
     sfx.multiball();
@@ -600,6 +606,18 @@ export class Game {
       } else {
         this.award('saucer', SCORES.saucer, h.x, h.y);
         this.message('BLACK HOLE  +' + SCORES.saucer.toLocaleString(), 2.2);
+        // The saucer physically holds the ball, so it doubles as the lock.
+        // This is the route to multiball that does not require grinding the
+        // whole mission ladder in a single game.
+        if (this.balls.length === 1 && this.locks < LOCKS_FOR_MULTIBALL) {
+          this.locks++;
+          if (this.locks < LOCKS_FOR_MULTIBALL) {
+            const left = LOCKS_FOR_MULTIBALL - this.locks;
+            this.message(`BALL ${this.locks} LOCKED - ${left} MORE FOR MULTIBALL`, 2.8);
+          } else {
+            this.message('MULTIBALL READY!', 2.8);
+          }
+        }
       }
       this.shake = Math.max(this.shake, 11);
       return;
@@ -626,6 +644,10 @@ export class Game {
         b.y = hole.y - 4;
         b.vx = 260;
         b.vy = -1180;
+        if (this.locks >= LOCKS_FOR_MULTIBALL) {
+          this.locks = 0;
+          this.startMultiball(2);
+        }
       }
       sfx.kickout();
     }

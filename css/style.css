@@ -173,6 +173,19 @@ body {
 
 @keyframes blink { 50% { opacity: 0.35; } }
 
+.lock-badge {
+  position: absolute;
+  top: 10px;
+  right: 50px;
+  z-index: 5;
+  font-family: var(--pix);
+  font-size: 8px;
+  letter-spacing: 0.1em;
+  background: var(--violet);
+  color: #1a0033;
+  pointer-events: none;
+}
+
 /* ---------------- On-table controls ---------------- */
 .stage-controls {
   position: absolute;
