@@ -61,8 +61,15 @@ running the contents through Jekyll first.
 ### Adding it to an iPhone home screen
 
 Open the page in Safari → Share → **Add to Home Screen**. It launches
-fullscreen with no browser chrome, and because Bootstrap, the fonts and all
-the sound are bundled locally, it keeps working with no signal.
+fullscreen with no browser chrome.
+
+Bootstrap, the webfonts and every sound are bundled or synthesised locally,
+so the whole game is a handful of same-origin requests with no third-party
+dependency to go down. That is not the same as true offline support: there
+is no service worker, so a cold launch with no connection depends on
+whatever iOS still holds in its HTTP cache. Registering one would make it
+genuinely offline-capable, at the cost of having to manage cache
+invalidation on every update.
 
 ## Running locally
 

@@ -13,8 +13,9 @@
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" href="./assets/icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="./assets/icon-180.png">
-<!-- Bootstrap and the webfonts are self-hosted: no CDN to go down, and the
-     game still works with no network once it is on your home screen. -->
+<!-- Bootstrap and the webfonts are self-hosted: no CDN to go down and no
+     third-party request on the critical path. Note there is no service
+     worker, so this is not true offline support. -->
 <link rel="preload" href="./assets/fonts/press-start-2p.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="./vendor/bootstrap.min.css">
 <link rel="stylesheet" href="./css/fonts.css">

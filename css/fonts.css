@@ -1,4 +1,5 @@
-/* Self-hosted webfonts so the game works offline and never waits on a CDN.
+/* Self-hosted webfonts so the game never waits on a CDN that might be slow,
+   blocked, or gone.
    Press Start 2P and Share Tech Mono are both SIL Open Font License 1.1. */
 
 @font-face {
