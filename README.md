@@ -49,14 +49,14 @@ End-of-ball bonus is everything you hit that ball, times your multiplier.
 
 ## Deploying to GitHub Pages
 
-The repository *is* the site — there is nothing to build.
+The repository *is* the site — there is nothing to build, so no deploy
+workflow is needed. Settings → Pages → Source: *Deploy from a branch* →
+`main` / `/ (root)`, and GitHub publishes the repo as-is on every push.
 
-**Easiest:** Settings → Pages → Source: *Deploy from a branch* → `main` / `/ (root)`.
+The game then lands at `https://<user>.github.io/pinball-game/`.
 
-**Or via Actions:** Settings → Pages → Source: *GitHub Actions*. The included
-workflow (`.github/workflows/pages.yml`) publishes on every push to `main`.
-
-Either way the game lands at `https://<user>.github.io/pinball-game/`.
+`.nojekyll` is in the root so Pages serves every file verbatim instead of
+running the contents through Jekyll first.
 
 ### Adding it to an iPhone home screen
 
