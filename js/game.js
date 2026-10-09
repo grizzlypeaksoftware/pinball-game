@@ -388,10 +388,18 @@ export class Game {
   }
 
   stepPhysics(dt) {
-    // Substep so a fast ball can never jump through a wall.
+    // Substep so nothing can jump through anything else in one step. This has
+    // to account for the FLIPPER as well as the ball: a swinging flipper tip
+    // covers ~46 units in a 1/60s step, so sizing the substep from ball speed
+    // alone let a flipper sweep straight through a resting ball and punch it
+    // out the underside, into the drain.
     let fastest = 1;
     for (const b of this.balls) fastest = Math.max(fastest, speedOf(b));
-    const steps = Math.max(1, Math.min(48, Math.ceil((dt * fastest) / (BALL_R * 0.45))));
+    for (const f of this.table.flippers) {
+      const moving = f.held ? f.angle !== f.up : f.angle !== f.rest;
+      if (moving) fastest = Math.max(fastest, FLIPPER_UP_SPEED * f.len);
+    }
+    const steps = Math.max(1, Math.min(64, Math.ceil((dt * fastest) / (BALL_R * 0.45))));
     const h = dt / steps;
 
     const p = this.table.plunger;
@@ -401,6 +409,7 @@ export class Game {
       for (const b of this.balls) {
         if (b.captured) continue;
         integrate(b, h);
+        this.ejectFromSlings(b);
         this.collideBall(b);
         this.checkHoleEntry(b);
         clampSpeed(b);
@@ -422,6 +431,29 @@ export class Game {
         }
       } else {
         b.stuckFor = 0;
+      }
+    }
+  }
+
+  /**
+   * If a ball's centre ever ends up inside a slingshot, push it back out of
+   * the nearest face. Nothing should get in there, but a ball wedged inside a
+   * closed triangle is unrecoverable, so it is worth the handful of dot
+   * products to make it impossible.
+   */
+  ejectFromSlings(b) {
+    for (const s of this.table.slings) {
+      let inside = true;
+      let shallowest = Infinity;
+      let face = null;
+      for (const e of s.edges) {
+        const d = (b.x - e.x1) * e.nx + (b.y - e.y1) * e.ny;
+        if (d > 0) { inside = false; break; }
+        if (-d < shallowest) { shallowest = -d; face = e; }
+      }
+      if (inside && face) {
+        b.x += face.nx * (shallowest + b.r + 1);
+        b.y += face.ny * (shallowest + b.r + 1);
       }
     }
   }
@@ -621,6 +653,7 @@ export class Game {
   }
 
   checkDrains(dt) {
+    if (this.state === 'gameOver') return;
     const alive = [];
     let drained = 0;
     for (const b of this.balls) {
@@ -641,6 +674,10 @@ export class Game {
     }
 
     if (this.ballSave > 0 && !this.tilted) {
+      // One save per ball. The timer only ticks during play, so leaving it
+      // armed after a save meant a quick drain cost almost nothing and the
+      // same ball could be saved over and over -- you could never lose.
+      this.ballSave = 0;
       this.message('BALL SAVED', 2);
       sfx.kickout();
       this.balls = [makeBall(PLUNGER_REST.x, PLUNGER_REST.y)];

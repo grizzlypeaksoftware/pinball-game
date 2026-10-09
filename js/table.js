@@ -95,20 +95,38 @@ export function createTable() {
   const slings = [];
   for (const side of [1, -1]) {
     const f = (x) => (side === 1 ? x : mx(x));
-    const a = { x: f(142), y: 752 };
-    const b = { x: f(214), y: 832 };
-    const c = { x: f(146), y: 826 };
+    // The inner vertex is kept well clear of the raised flipper tip. At the
+    // original 214,832 the two closed to a 0.1-unit gap, so a flipped ball
+    // was crushed in the wedge and could end up inside the triangle.
+    const a = { x: f(138), y: 744 };
+    const b = { x: f(196), y: 812 };
+    const c = { x: f(142), y: 818 };
     const face = wall(a.x, a.y, b.x, b.y, { kind: 'sling', r: 6, rest: 0.55, kick: 540 });
     segments.push(face);
     segments.push(wall(b.x, b.y, c.x, c.y, { kind: 'slingBack', r: 4 }));
     segments.push(wall(c.x, c.y, a.x, a.y, { kind: 'slingBack', r: 4 }));
-    slings.push({ side, a, b, c, face, flash: 0 });
+    // Outward normals per edge, used to eject a ball that gets inside.
+    const centroid = { x: (a.x + b.x + c.x) / 3, y: (a.y + b.y + c.y) / 3 };
+    const edges = [[a, b], [b, c], [c, a]].map(([p, q]) => {
+      const dx = q.x - p.x;
+      const dy = q.y - p.y;
+      const len = Math.hypot(dx, dy);
+      let nx = dy / len;
+      let ny = -dx / len;
+      if ((p.x - centroid.x) * nx + (p.y - centroid.y) * ny < 0) { nx = -nx; ny = -ny; }
+      return { x1: p.x, y1: p.y, nx, ny };
+    });
+    slings.push({ side, a, b, c, face, edges, flash: 0 });
   }
 
   // ---- Flippers ------------------------------------------------------
+  // Flipper length sets the drain gap: gap = 196 - 1.842*len between the tip
+  // centres, minus 2*r of capsule. At len 88 that left 15.9 units of clear
+  // space and a 22-unit ball simply sat on both tips instead of draining.
+  // 82 gives 26.9 clear -- comfortably wider than the ball.
   const flippers = [
-    { side: 'left', px: 150, py: 886, len: 84, r: 9, rest: 0.4, up: -0.52, angle: 0.4, omega: 0, held: false },
-    { side: 'right', px: mx(150), py: 886, len: 84, r: 9, rest: Math.PI - 0.4, up: Math.PI + 0.52, angle: Math.PI - 0.4, omega: 0, held: false },
+    { side: 'left', px: 150, py: 886, len: 82, r: 9, rest: 0.4, up: -0.52, angle: 0.4, omega: 0, held: false },
+    { side: 'right', px: mx(150), py: 886, len: 82, r: 9, rest: Math.PI - 0.4, up: Math.PI + 0.52, angle: Math.PI - 0.4, omega: 0, held: false },
   ];
 
   // ---- Jet bumpers ---------------------------------------------------
