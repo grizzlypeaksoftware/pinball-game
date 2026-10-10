@@ -519,24 +519,26 @@ export class Renderer {
 
   drawPlunger(ctx, p, game) {
     const inLaunch = game.state === 'launch';
+    // The forward snap is cosmetic: physics keeps the head at or below rest.
+    const y = p.y - p.anim * (p.throwLen || 0);
     ctx.save();
     // Shaft
     ctx.strokeStyle = '#6b7fae';
     ctx.lineWidth = 10;
     ctx.lineCap = 'round';
     ctx.beginPath();
-    ctx.moveTo(500, p.y + 10);
+    ctx.moveTo(500, y + 10);
     ctx.lineTo(500, 996);
     ctx.stroke();
     // Head
-    const g = ctx.createLinearGradient(0, p.y - 8, 0, p.y + 8);
+    const g = ctx.createLinearGradient(0, y - 8, 0, y + 8);
     g.addColorStop(0, '#e8f1ff');
     g.addColorStop(1, '#7f93c4');
     ctx.fillStyle = g;
-    ctx.fillRect(p.x1, p.y - 7, p.x2 - p.x1, 14);
+    ctx.fillRect(p.x1, y - 7, p.x2 - p.x1, 14);
     ctx.strokeStyle = '#17203f';
     ctx.lineWidth = 2;
-    ctx.strokeRect(p.x1, p.y - 7, p.x2 - p.x1, 14);
+    ctx.strokeRect(p.x1, y - 7, p.x2 - p.x1, 14);
 
     // Charge meter up the side of the chute while you hold it.
     if (inLaunch && p.pull > 0.01) {

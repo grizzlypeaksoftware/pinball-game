@@ -182,6 +182,36 @@ export function collideFlipper(b, f) {
   return impact;
 }
 
+/**
+ * Ball against ball, equal masses. Without this, multiball balls occupy the
+ * same point -- two of them would stack in the plunger chute at identical
+ * coordinates.
+ */
+export function collideBalls(a, b) {
+  const dx = b.x - a.x;
+  const dy = b.y - a.y;
+  const d = Math.hypot(dx, dy);
+  const R = a.r + b.r;
+  if (d > R) return 0;
+  // Exactly coincident: shove them apart on an arbitrary axis.
+  const nx = d < 1e-6 ? 1 : dx / d;
+  const ny = d < 1e-6 ? 0 : dy / d;
+  const push = (R - (d < 1e-6 ? 0 : d)) * 0.5;
+  a.x -= nx * push;
+  a.y -= ny * push;
+  b.x += nx * push;
+  b.y += ny * push;
+
+  const vn = (b.vx - a.vx) * nx + (b.vy - a.vy) * ny;
+  if (vn > 0) return 0;
+  const j = (-(1 + 0.5) * vn) / 2;
+  a.vx -= nx * j;
+  a.vy -= ny * j;
+  b.vx += nx * j;
+  b.vy += ny * j;
+  return -vn;
+}
+
 /** Integrate one substep of ballistic motion. */
 export function integrate(b, h, gravityScale = 1) {
   b.vy += GRAVITY * gravityScale * h;

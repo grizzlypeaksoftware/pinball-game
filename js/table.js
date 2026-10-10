@@ -224,7 +224,8 @@ export function createTable() {
   ];
 
   // ---- Plunger -------------------------------------------------------
-  const plunger = { x1: 470, x2: 530, y: 944, pull: 0, anim: 0, r: 5, rest: 0.1, kind: 'plunger' };
+  // `throwLen` is how far the head visually snaps past rest when fired.
+  const plunger = { x1: 470, x2: 530, y: 944, pull: 0, anim: 0, throwLen: 26, r: 5, rest: 0.1, kind: 'plunger' };
 
   return {
     segments,

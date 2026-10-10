@@ -7,7 +7,7 @@
  */
 
 import {
-  BALL_R, clampSpeed, collideCircle, collideFlipper,
+  BALL_R, clampSpeed, collideBalls, collideCircle, collideFlipper,
   collideSegment, integrate, makeBall, speedOf,
 } from './physics.js';
 import { createTable, DRAIN_Y, inLaunchLane, inLeftOutlane, PLUNGER_REST, DOME } from './table.js';
@@ -53,10 +53,11 @@ const BALL_SAVE_TIME = 10;
 const FLIPPER_UP_SPEED = 33;
 const FLIPPER_DOWN_SPEED = 19;
 const PLUNGER_CHARGE_TIME = 0.85;
-/** Resting y of the plunger head, how far it pulls back, how far it snaps forward. */
+/** Resting y of the plunger head and how far it pulls back. The forward snap
+ *  is drawn by the renderer only -- moving the collision surface above rest
+ *  punches a resting ball downward. */
 const PLUNGER_TOP = 944;
 const PLUNGER_PULL = 30;
-const PLUNGER_THROW = 26;
 const TILT_LIMIT = 3;
 const HIGH_SCORE_KEY = 'spaceCadetPinball.highScore';
 
@@ -265,15 +266,22 @@ export class Game {
     this.plungerHeld = false;
     if (this.state !== 'launch') return;
     const p = this.table.plunger;
-    const ball = this.balls.find((b) => inLaunchLane(b));
+    // Fire the lowest ball in the chute: the one actually sitting on the
+    // plunger. With two parked, launching the upper one leaves the lower
+    // stranded underneath it.
+    let ball = null;
+    for (const b of this.balls) {
+      if (b.captured || !inLaunchLane(b)) continue;
+      if (!ball || b.y > ball.y) ball = b;
+    }
     if (!ball) return;
     const power = Math.max(0.25, p.pull);
     p.anim = 1;
     p.pull = 0;
-    // Seat the ball on the plunger head at full extension before firing it.
-    // Otherwise the head snaps up through the ball and punts it into the drain.
+    // The plunger head returns to rest the instant pull drops to zero, so lift
+    // the ball to sit on it rather than letting the head snap up through it.
     ball.x = PLUNGER_REST.x;
-    ball.y = PLUNGER_TOP - PLUNGER_THROW - BALL_R - 2;
+    ball.y = Math.min(ball.y, PLUNGER_TOP - p.r - BALL_R);
     ball.vy = -(1150 + 950 * power);
     ball.vx = 0;
     ball.trail.length = 0;
@@ -349,12 +357,18 @@ export class Game {
     this.checkDrains(dt);
   }
 
-  /** A launch too weak to clear the chute leaves the ball back on the plunger. */
+  /**
+   * A launch too weak to clear the chute leaves the ball back on the plunger.
+   * This must work for ANY number of balls: during multiball two could park
+   * in the chute, and requiring exactly one ball meant the plunger never
+   * re-armed and the game deadlocked with no way to put a ball back in play.
+   */
   checkReplunge() {
-    if (this.state !== 'play' || this.balls.length !== 1) return;
-    const b = this.balls[0];
-    if (b.captured) return;
-    if (inLaunchLane(b) && b.y > 890 && speedOf(b) < 40) this.setState('launch');
+    if (this.state !== 'play') return;
+    const parked = this.balls.some(
+      (b) => !b.captured && inLaunchLane(b) && b.y > 890 && speedOf(b) < 40
+    );
+    if (parked) this.setState('launch');
   }
 
   decayEffects(dt) {
@@ -410,8 +424,15 @@ export class Game {
 
     const p = this.table.plunger;
     for (let i = 0; i < steps; i++) {
-      p.y = PLUNGER_TOP + p.pull * PLUNGER_PULL - p.anim * PLUNGER_THROW;
+      p.y = PLUNGER_TOP + p.pull * PLUNGER_PULL;
       this.updateFlippers(h);
+      for (let i = 0; i < this.balls.length; i++) {
+        for (let j = i + 1; j < this.balls.length; j++) {
+          const a = this.balls[i];
+          const c = this.balls[j];
+          if (!a.captured && !c.captured) collideBalls(a, c);
+        }
+      }
       for (const b of this.balls) {
         if (b.captured) continue;
         integrate(b, h);
